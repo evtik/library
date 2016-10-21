@@ -6,28 +6,40 @@ require_relative 'Reader'
 require_relative 'Order'
 require_relative 'Library'
 
-library = JSON.parse(File.read('data.json'))
+library_data = JSON.parse(File.read('data.json'))
 
 authors = []
 books = []
 readers = []
 orders = []
 
-library['authors'].each do |author|
+library_data['authors'].each do |author|
   authors << Author.new(author['name'], author['biography'])
 end
 
-library['books'].each do |b|
+library_data['books'].each do |book|
   books << Book.new(
-    b['title'],
-    Author.new(b['author']['name'], b['author']['biography'])
+    book['title'],
+    authors.find { |author| author.name == book['author'] }
   )
 end
 
-library['readers'].each do |r|
+library_data['readers'].each do |r|
   readers << Reader.new(
     r['name'], r['email'], r['city'], r['street'], r['house']
   )
 end
 
-p readers
+library_data['orders'].each do |order|
+  orders << Order.new(
+    books.find { |book| book.title == order['book'] },
+    readers.find { |reader| reader.name == order['reader'] },
+    order['date']
+  )
+end
+
+library = Library.new(authors, books, readers, orders)
+
+puts library.top_reader
+puts library.top_book
+puts library.top_three_books
