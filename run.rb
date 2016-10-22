@@ -41,5 +41,7 @@ end
 library = Library.new(authors, books, readers, orders)
 
 puts library.top_reader
-puts library.top_book
-puts library.top_three_books
+puts library.top_book_by_orders
+puts library.top_book_by_readers
+puts library.top_three_books_by_orders
+puts library.top_three_books_by_readers
