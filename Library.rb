@@ -41,6 +41,48 @@ class Library
     end
   end
 
+  def save_data(file_path)
+    library_data = {}
+    library_data[:authors] = []
+    library_data[:books] = []
+    library_data[:readers] = []
+    library_data[:orders] = []
+
+    @authors.each do |author|
+      library_data[:authors] << {
+        name: author.name,
+        biography: author.biography
+      }
+    end
+
+    @books.each do |book|
+      library_data[:books] << {
+        title: book.title,
+        author: book.author.name
+      }
+    end
+
+    @readers.each do |reader|
+      library_data[:readers] << {
+        name: reader.name,
+        email: reader.email,
+        city: reader.city,
+        street: reader.street,
+        house: reader.house
+      }
+    end
+
+    @orders.each do |order|
+      library_data[:orders] << {
+        book: order.book.title,
+        reader: order.reader.name,
+        date: order.date
+      }
+    end
+
+    File.write(file_path, JSON.pretty_generate(library_data))
+  end
+
   def top_reader
     o_hash = @orders.inject(Hash.new(0)) { |h, o| h[o.reader] += 1; h }
     reader = o_hash.max_by { |_k, v| v }
