@@ -1,8 +1,44 @@
+require 'json'
+
+require_relative 'Author'
+require_relative 'Book'
+require_relative 'Reader'
+require_relative 'Order'
+
 class Library
   attr_accessor :authors, :books, :readers, :orders
 
-  def initialize(authors, books, readers, orders)
-    @authors, @books, @readers, @orders = authors, books, readers, orders
+  def initialize
+    @authors, @books, @readers, @orders = [], [], [], []
+  end
+
+  def get_data(file_path)
+    library_data = JSON.parse(File.read(file_path))
+
+    library_data['authors'].each do |author|
+      @authors << Author.new(author['name'], author['biography'])
+    end
+
+    library_data['books'].each do |book|
+      @books << Book.new(
+        book['title'],
+        authors.find { |author| author.name == book['author'] }
+      )
+    end
+
+    library_data['readers'].each do |r|
+      @readers << Reader.new(
+        r['name'], r['email'], r['city'], r['street'], r['house']
+      )
+    end
+
+    library_data['orders'].each do |order|
+      @orders << Order.new(
+        books.find { |book| book.title == order['book'] },
+        readers.find { |reader| reader.name == order['reader'] },
+        order['date']
+      )
+    end
   end
 
   def top_reader
