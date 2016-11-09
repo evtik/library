@@ -4,8 +4,11 @@ require_relative 'author'
 require_relative 'book'
 require_relative 'reader'
 require_relative 'order'
+require_relative 'library_helper'
 
 class Library
+  include LibraryHelper
+
   attr_accessor :authors, :books, :readers, :orders
 
   def initialize
@@ -31,19 +34,15 @@ class Library
   end
 
   def top_reader
-    o_hash = @orders.inject(Hash.new(0)) { |h, o| h[o.reader] += 1; h }
+    o_hash = @orders.each_with_object(Hash.new(0)) { |o, h| h[o.reader] += 1 }
     reader = o_hash.max_by { |_k, v| v }
-    "The top reader is #{reader.first.name} with #{reader.last} orders"
+    "\nThe top reader is #{reader.first.name} with #{reader.last} orders"
   end
-
-  # The reason for existance of both _by_orders and _by_readers
-  # methods is that a reader could take the same book multiple
-  # times. The results should be the same assuming each user only
-  # orders each book once.
 
   def top_book_by_orders
     book = top_book(@orders)
-    "\nThe top book by orders is \"#{book.first.title}\" with #{book.last} orders"
+    "\nThe top book by orders is \"#{book.first.title}\" "\
+      "with #{book.last} orders"
   end
 
   def top_book_by_readers
@@ -72,87 +71,16 @@ class Library
 
   private
 
-  def fetch_authors
-    @library_data['authors'].each do |author|
-      @authors << Author.new(author['name'], author['biography'])
-    end
-  end
-
-  def fetch_books
-    @library_data['books'].each do |book|
-      @books << Book.new(
-        book['title'],
-        authors.find { |author| author.name == book['author'] }
-      )
-    end
-  end
-
-  def fetch_readers
-    @library_data['readers'].each do |r|
-      @readers << Reader.new(
-        r['name'], r['email'], r['city'], r['street'], r['house']
-      )
-    end
-  end
-
-  def fetch_orders
-    @library_data['orders'].each do |order|
-      @orders << Order.new(
-        books.find { |book| book.title == order['book'] },
-        readers.find { |reader| reader.name == order['reader'] },
-        order['date']
-      )
-    end
-  end
-
-  def collect_authors
-    @authors.each do |author|
-      @library_data[:authors] << {
-        name: author.name,
-        biography: author.biography
-      }
-    end
-  end
-
-  def collect_books
-    @books.each do |book|
-      @library_data[:books] << {
-        title: book.title,
-        author: book.author.name
-      }
-    end
-  end
-
-  def collect_readers
-    @readers.each do |reader|
-      @library_data[:readers] << {
-        name: reader.name,
-        email: reader.email,
-        city: reader.city,
-        street: reader.street,
-        house: reader.house
-      }
-    end
-  end
-
-  def collect_orders
-    @orders.each do |order|
-      @library_data[:orders] << {
-        book: order.book.title,
-        reader: order.reader.name,
-        date: order.date
-      }
-    end
+  def orders_hash_by_book(orders)
+    orders.each_with_object(Hash.new(0)) { |o, h| h[o.book] += 1 }
   end
 
   def top_book(orders)
-    o_hash = orders.inject(Hash.new(0)) { |h, o| h[o.book] += 1; h }
-    o_hash.max_by { |_k, v| v }
+    orders_hash_by_book(orders).max_by { |_k, v| v }
   end
 
   def top_three_books(orders)
-    o_hash = orders.inject(Hash.new(0)) { |h, o| h[o.book] += 1; h }
-    (o_hash.sort_by { |_k, v| v }).reverse.take(3)
+    orders_hash_by_book(orders).sort_by { |_k, v| v }.reverse.take(3)
   end
 
   def orders_unique_by_readers(orders)
