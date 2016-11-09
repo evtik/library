@@ -1,9 +1,9 @@
 require 'json'
 
-require_relative 'Author'
-require_relative 'Book'
-require_relative 'Reader'
-require_relative 'Order'
+require_relative 'author'
+require_relative 'book'
+require_relative 'reader'
+require_relative 'order'
 
 class Library
   attr_accessor :authors, :books, :readers, :orders
