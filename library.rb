@@ -34,8 +34,8 @@ class Library
   end
 
   def top_reader
-    o_hash = @orders.each_with_object(Hash.new(0)) { |o, h| h[o.reader] += 1 }
-    reader = o_hash.max_by { |_k, v| v }
+    reader = @orders.each_with_object(Hash.new(0)) { |o, h| h[o.reader] += 1 }
+                    .max_by { |_k, v| v }
     "\nThe top reader is #{reader.first.name} with #{reader.last} orders"
   end
 
@@ -52,18 +52,16 @@ class Library
   end
 
   def top_three_books_by_orders
-    books = top_three_books(@orders)
     result = "\nThe top three books by orders are:"
-    books.each do |book|
+    top_three_books(@orders).each do |book|
       result << "\n\"#{book.first.title}\" met in #{book.last} orders"
     end
     result
   end
 
   def top_three_books_by_readers
-    books = top_three_books(orders_unique_by_readers(@orders))
     result = "\nThe top three books by readers are:"
-    books.each do |book|
+    top_three_books(orders_unique_by_readers(@orders)).each do |book|
       result << "\n\"#{book.first.title}\" taken by #{book.last} readers"
     end
     result
