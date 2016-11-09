@@ -1,11 +1,7 @@
 require 'faker'
 require 'json'
 
-library = {}
-library[:authors] = []
-library[:books] = []
-library[:readers] = []
-library[:orders] = []
+library = Hash.new { |hash, key| hash[key] = [] }
 
 number_of_authors = 30
 number_of_readers = 50
@@ -53,7 +49,8 @@ number_of_orders.times do |i|
              library[:readers][rand(number_of_readers)][:name]
            end
 
-  library[:orders] << { book: book, reader: reader, date: DateTime.now }
+  library[:orders] <<
+    { book: book, reader: reader, date: Faker::Date.backward(180) }
 end
 
 File.write 'data.json', JSON.pretty_generate(library)
