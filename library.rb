@@ -34,34 +34,35 @@ class Library
   end
 
   def top_reader
-    reader = @orders.each_with_object(Hash.new(0)) { |o, h| h[o.reader] += 1 }
-                    .max_by { |_k, v| v }
+    reader = group_orders_by(:reader)[0]
     "\nThe top reader is #{reader.first.name} with #{reader.last} orders"
   end
 
   def top_book_by_orders
-    book = top_book(@orders)
+    book = group_orders_by(:book)[0]
     "\nThe top book by orders is \"#{book.first.title}\" "\
       "with #{book.last} orders"
   end
 
   def top_book_by_readers
-    book = top_book(orders_unique_by_readers(@orders))
+    block = -> (orders) { orders.uniq { |o| [o.book, o.reader] } }
+    book = group_orders_by(:book, &block)[0]
     "The top book by readers is \"#{book.first.title}\" "\
       "taken by #{book.last} readers"
   end
 
   def top_three_books_by_orders
     result = "\nThe top three books by orders are:"
-    top_three_books(@orders).each do |book|
+    group_orders_by(:book, 3).each do |book|
       result << "\n\"#{book.first.title}\" met in #{book.last} orders"
     end
     result
   end
 
   def top_three_books_by_readers
+    block = -> (orders) { orders.uniq { |o| [o.book, o.reader] } }
     result = "\nThe top three books by readers are:"
-    top_three_books(orders_unique_by_readers(@orders)).each do |book|
+    group_orders_by(:book, 3, &block).each do |book|
       result << "\n\"#{book.first.title}\" taken by #{book.last} readers"
     end
     result
@@ -69,24 +70,11 @@ class Library
 
   private
 
-  def orders_hash_by_book(orders)
-    orders.each_with_object(Hash.new(0)) { |o, h| h[o.book] += 1 }
-  end
-
-  def top_book(orders)
-    orders_hash_by_book(orders).max_by { |_k, v| v }
-  end
-
-  def top_three_books(orders)
-    orders_hash_by_book(orders).sort_by { |_k, v| v }.reverse.take(3)
-  end
-
-  def orders_unique_by_readers(orders)
-    unique_orders = []
-    orders.group_by(&:book).each do |_book, book_orders|
-      book_orders.uniq!(&:reader)
-      unique_orders.concat(book_orders)
-    end
-    unique_orders
+  def group_orders_by(entity, count = 1)
+    orders = block_given? ? yield(@orders) : @orders
+    orders.each_with_object(Hash.new(0)) { |o, h| h[o.send(entity)] += 1 }
+          .sort_by { |_k, v| v }
+          .reverse
+          .first(count)
   end
 end
