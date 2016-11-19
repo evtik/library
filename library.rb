@@ -16,47 +16,23 @@ class Library
   end
 
   def top_reader
-    reader = count_orders_by(:reader)[0]
-    "\nThe top reader is #{reader.first.name} with #{reader.last} orders"
+    name = count_orders_by(:reader)[0][0].reader.name
+    "The top reader is #{name}"
   end
 
-  def top_book_by_orders
-    book = count_orders_by(:book)[0]
-    "\nThe top book by orders is \"#{book.first.title}\" "\
-      "with #{book.last} orders"
+  def top_book
+    title = count_orders_by(:book)[0][0].book.title
+    "The top book is \"#{title}\""
   end
 
-  def top_book_by_readers
-    block = -> (orders) { orders.uniq { |o| [o.book, o.reader] } }
-    book = count_orders_by(:book, &block)[0]
-    "The top book by readers is \"#{book.first.title}\" "\
-      "taken by #{book.last} readers"
-  end
-
-  def top_three_books_by_orders
-    result = "\nThe top three books by orders are:"
-    count_orders_by(:book, 3).each do |book|
-      result << "\n\"#{book.first.title}\" met in #{book.last} orders"
-    end
-    result
-  end
-
-  def top_three_books_by_readers
-    block = -> (orders) { orders.uniq { |o| [o.book, o.reader] } }
-    result = "\nThe top three books by readers are:"
-    count_orders_by(:book, 3, &block).each do |book|
-      result << "\n\"#{book.first.title}\" taken by #{book.last} readers"
-    end
-    result
+  def top_three_books
+    readers_count = count_orders_by(:book, 3).flatten.uniq(&:reader).length
+    "The top three books have been taken by #{readers_count} readers"
   end
 
   private
 
   def count_orders_by(entity, take = 1)
-    orders = block_given? ? yield(@orders) : @orders
-    orders.each_with_object(Hash.new(0)) { |o, h| h[o.send(entity)] += 1 }
-          .sort_by { |_k, v| v }
-          .reverse
-          .first(take)
+    @orders.group_by(&entity).values.sort_by(&:length).last(take)
   end
 end
