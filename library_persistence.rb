@@ -1,19 +1,13 @@
 module LibraryPersistence
   def get_data(file_path)
     @library_data = JSON.parse(File.read(file_path))
-    fetch_authors
-    fetch_books
-    fetch_readers
-    fetch_orders
+    %w(author book reader order).each { |e| send "fetch_#{e}s" }
     @library_data = nil
   end
 
   def save_data(file_path)
     @library_data = Hash.new { |hash, key| hash[key] = [] }
-    collect_authors
-    collect_books
-    collect_readers
-    collect_orders
+    %w(author book reader order).each { |e| send "collect_#{e}s" }
     File.write(file_path, JSON.pretty_generate(@library_data))
   end
 
